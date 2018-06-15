@@ -1,11 +1,17 @@
 Simplified PT Client for mbed-edge
 
 To compile (linux supported only):
+
 	1) Clone and compile https://github.com/ARMmbed/mbed-edge-confidential-w (for simplicity, use developer-flow enrollment)
+
         2).Clone this repo
+
         3).Edit "build.sh" and adjust the EDGE_REPO variable to point to your compiled instance of "mbed-edge-confidential-w"
+
 	4).Execute "./build.sh"
+
         5).In a separate window, launch the edge-core runtime
+
 	6).Execute "./run.sh"
 
 You should be able to confirm that there is a single device in your mbed Cloud account (it should be called "NonMbedDevice-0")
