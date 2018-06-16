@@ -36,7 +36,7 @@ Orchestrator::Orchestrator(void *device) {
     this->initialize(device);
 }
 
-// destructur
+// destructor
 Orchestrator::~Orchestrator() {
    if (this->m_connection != NULL) {
 	free(this->m_connection);
