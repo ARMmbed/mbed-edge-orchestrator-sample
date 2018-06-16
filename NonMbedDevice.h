@@ -36,13 +36,23 @@ class NonMbedDevice {
 	public:
 		NonMbedDevice();
  		virtual ~NonMbedDevice();
+		
+		// set the "tick" event handler 
 		void setEventCallbackHandler(ticker_event_fn *fn,void *ctx);
+
+		// static "tick" processor 
+		static void *tickerProcessor(void *ctx);
+	
+		// main loop for the simulated device (pthread)
 		void start();
 		void stop();
-		static void *tickerProcessor(void *ctx);
 		void deviceRunLoop();
+
+		// the simulated device "ticks" a counter value every "n" seconds... so we can get/set its value...
 		void setCounterValue(int counter_value);
 		int getCounterValue();
+
+		// the simulated device has an I/O switch... so we can get/set its state...
 	        void setSwitchState(bool switch_state);
 		bool getSwitchState();
 
