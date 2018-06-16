@@ -59,12 +59,20 @@ class Orchestrator {
    public:
 	Orchestrator(void *device);
        	virtual ~Orchestrator();
+
+	// static "tick" event handler processor
 	static void tickHandler(int value,void *ctx);
+
+	// process a "tick" event
 	void processTick(int value);
-	bool connectToMbedEdgePT(int argc,char **argv);
+
+	// main loop for Orchestrator (trivial sleep...)
 	void processEvents();
 
-	// Run PT
+	// connect the Orchestrator to mbed edge PT
+	bool connectToMbedEdgePT(int argc,char **argv);
+
+	// Run mbed edge's PT
 	void runPT(void);
         static void *runPT(void *ctx);
 
@@ -73,7 +81,7 @@ class Orchestrator {
 	void shutdown();
 	static void shutdownCB(void *ctx);
 	
-	// PT Ready
+	// PT is Ready for processing!
 	void ptIsReady(struct connection *connection);
 	static void ptIsReadyCB(struct connection *connection,void *ctx);
 
