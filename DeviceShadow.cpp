@@ -331,7 +331,7 @@ bool DeviceShadow::processWrite(const char *device_id, const uint16_t object_id,
          * resetted values unless written back.
          */
         Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
-        // XXXX pt_write_value(orchestrator->getConnection(), device, device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, (void*)this);
+        pt_write_value(orchestrator->getConnection(), device, device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, (void*)this);
     }
     return true;
 }
@@ -360,7 +360,7 @@ void DeviceShadow::updateCounterResourceValue(int value) {
         current = value; // current value is now the counter value incremented...
         printf("DeviceShadow: Updating counter value in mbed Cloud: %d\n",value);
         convert_int_value_to_network_byte_order(value,resource->value);
-        // XXXX pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB,this);
+        pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB,this);
         resource->callback(resource, resource->value, sizeof(int), NULL);
     }
 }
