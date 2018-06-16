@@ -69,6 +69,7 @@ class Orchestrator {
         static void *runPT(void *ctx);
 
 	// PT Shutdown
+        void completeShutdown();
 	void shutdown();
 	static void shutdownCB(void *ctx);
 	

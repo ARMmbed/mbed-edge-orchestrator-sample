@@ -29,6 +29,22 @@
 // Utils
 #include "utils.h"
 
+// global instances
+static Orchestrator *orchestrator = NULL;
+
+// shutdown handler
+extern "C" void end_program() {
+    printf("Program ending...\n"); 
+    exit(0);
+}
+
+extern "C" void shutdown_handler(int signum) {
+    printf("Shutdown handler when interrupt %d is received\n", signum);
+    if (orchestrator != NULL) {
+	orchestrator->shutdown();
+    }
+}
+
 // main entry point
 int main(int argc, char **argv)
 {
@@ -39,7 +55,7 @@ int main(int argc, char **argv)
 	NonMbedDevice *non_mbed_device = new NonMbedDevice();
 	if (non_mbed_device != NULL) {
 		// create our orchestrator for interacting via PT with mbed-edge
-        	Orchestrator *orchestrator = new Orchestrator(non_mbed_device);
+        	orchestrator = new Orchestrator(non_mbed_device);
 
 		// register our device "tick" handler
 		non_mbed_device->setEventCallbackHandler(Orchestrator::tickHandler,(void *)orchestrator);

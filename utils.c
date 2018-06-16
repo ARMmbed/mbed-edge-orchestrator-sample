@@ -28,15 +28,8 @@
 #include <stdbool.h>
 #include <signal.h>
 
-/**
- * \brief The client example shutdown handler.
- * \param signum The signal number that initiated the shutdown handler.
- */
-void shutdown_handler(int signum)
-{
-    printf("Shutdown handler when interrupt %d is received\n", signum);
-    exit(0);
-}
+// shutdown handler in main.cpp
+extern void shutdown_handler(int signo);
 
 /**
  * \brief Set up the signal handler for catching signals from OS.

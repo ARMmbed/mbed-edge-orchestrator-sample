@@ -104,6 +104,17 @@ class DeviceShadow {
 	// update the counter resource value
 	void updateCounterResourceValue(int value);
 
+        // deregistration success
+        void unregisterSuccess(const char *device_id);
+        static void unregisterSuccessCB(const char* device_id, void *ctx);
+
+        // deregistration failure
+        void unregisterFailure(const char *device_id);
+        static void unregisterFailureCB(const char* device_id, void *ctx);
+
+	// deregister our device shadow from PT
+	void deregister();
+
     private:
 	DeviceShadow(const DeviceShadow &device);
         void initialize(void *orchestrator,char *device_id,char *suffix);

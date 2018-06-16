@@ -28,6 +28,9 @@
 // Docooptargs support
 #include "docoptargs.h"
 
+// program ender
+extern "C" void end_program();
+
 // default constructor
 Orchestrator::Orchestrator(void *device) {
     this->initialize(device);
@@ -92,12 +95,25 @@ bool Orchestrator::initializePT(int argc,char **argv) {
      return true;
 }
 
+// complete shutdown
+void Orchestrator::completeShutdown() {
+    // close our connection to PT...
+    if (this->m_connection != NULL) {
+        pt_client_shutdown(this->m_connection);
+    }
+
+    // end our program
+    end_program();
+}
+
 // shutdown
 void Orchestrator::shutdown() {
     // DEBUG
     printf("Orchestrator: Shutting down...\n");
-    if (this->m_connection != NULL) {
-    	pt_client_shutdown(this->m_connection);
+    
+    // deregister all shadows
+    if (this->m_device_shadow != NULL) {
+	this->m_device_shadow->deregister();
     }
 }
 
