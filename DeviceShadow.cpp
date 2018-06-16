@@ -111,7 +111,7 @@ void DeviceShadow::updateCounterValue(const pt_resource_opaque_t *resource, cons
     NonMbedDevice *device = (NonMbedDevice *)this->getDevice();
     int counter_value = 0;
     convert_value_to_host_order_integer((uint8_t *)value,&counter_value);
-    printf("DeviceShadow: Counter Value set to: %d",counter_value);
+    printf("DeviceShadow: Counter Value set to: %d\n",counter_value);
     device->setCounterValue(counter_value);
 }
 
@@ -163,7 +163,7 @@ void DeviceShadow::updateSwitchState(const pt_resource_opaque_t *resource, const
     if (int_switch_state != 0) {
 	switch_state = true;
     }
-    printf("DeviceShadow: Switch State set: %d",int_switch_state);
+    printf("DeviceShadow: Switch State set: %d\n",int_switch_state);
     device->setSwitchState(switch_state);
 }
 
@@ -313,25 +313,21 @@ bool DeviceShadow::processWrite(const char *device_id, const uint16_t object_id,
         return false;
     }
 
-    if ((operation & OPERATION_WRITE) && resource->callback) {
-        printf("DeviceShadow: Writing new value to \"%s/%d/%d/%d\"...", device_id, object_id, instance_id, resource_id);
-        /*
-         * The callback must validate the value size to be acceptable.
-         * For example, if resource value type is float, the value_size must be acceptable
-         * for the float field. And if the resource value type is string the
-         * callback may have to reallocate the reserved memory for the new value.
-         */
-        resource->callback(resource, value, value_size, NULL);
-    }
+    // for write and execute we typically have a callback... we may also update a value
+    if (operation & OPERATION_WRITE || operation & OPERATION_EXECUTE) {
+        // DEBUG
+        printf("DeviceShadow: Writing/Executing new value to \"%s/%d/%d/%d\"...\n", device_id, object_id, instance_id, resource_id);
+	
+	// the callback will update the simulated device...
+	Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
+	if (resource->callback != NULL) { 
+            resource->callback(resource, value, value_size, this);
+	}
 
-    else if ((operation & OPERATION_EXECUTE) && resource->callback) {
-        resource->callback(resource, value, value_size, NULL);
-        /*
-         * Update the reset min and max to Edge Core. The Edge Core cannot know the
-         * resetted values unless written back.
-         */
-        Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
-        pt_write_value(orchestrator->getConnection(), device, device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, (void*)this);
+	// we also update our value within PT if we have a value...
+	if (value != NULL && value_size > 0) {
+            pt_write_value(orchestrator->getConnection(), device, device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, this);
+	}
     }
     return true;
 }
@@ -360,8 +356,10 @@ void DeviceShadow::updateCounterResourceValue(int value) {
         current = value; // current value is now the counter value incremented...
         printf("DeviceShadow: Updating counter value in mbed Cloud: %d\n",value);
         convert_int_value_to_network_byte_order(value,resource->value);
+	if (resource->callback != NULL) {
+            resource->callback(resource,resource->value,resource->value_size,this);
+	}
         pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB,this);
-        resource->callback(resource, resource->value, sizeof(int), NULL);
     }
 }
 
