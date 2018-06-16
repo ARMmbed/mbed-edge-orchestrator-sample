@@ -46,35 +46,35 @@ extern "C" void shutdown_handler(int signum) {
 }
 
 // main entry point
-int main(int argc, char **argv)
-{
-	// setup our signals
-	setup_signals();
+int main(int argc, char **argv) {
+    // setup our signals
+    setup_signals();
+    
+    // Simulated non-mbed device: generates a "tick" value every "n" seconds and has a gettable/settable switch state
+    NonMbedDevice *non_mbed_device = new NonMbedDevice();
+    if (non_mbed_device != NULL) {
+	// create our orchestrator for interacting via PT with mbed-edge
+       	orchestrator = new Orchestrator(non_mbed_device);
 
-	// Simulated Trival device: generates a "pulse" value every "n" seconds and has a gettable/settable switch state
-	NonMbedDevice *non_mbed_device = new NonMbedDevice();
-	if (non_mbed_device != NULL) {
-		// create our orchestrator for interacting via PT with mbed-edge
-        	orchestrator = new Orchestrator(non_mbed_device);
+	// register our "tick" handler to be the Orchestrator... which will manipulate the device shadow...
+	non_mbed_device->setEventCallbackHandler(Orchestrator::tickHandler,(void *)orchestrator);
 
-		// register our device "tick" handler
-		non_mbed_device->setEventCallbackHandler(Orchestrator::tickHandler,(void *)orchestrator);
+        // start the simulated non-mbed device's main loop
+	printf("Main: starting the simulated non-mbed device...\n");
+        non_mbed_device->start();
 
-	        // start the simulated device
-		printf("Main: starting the trivial device...\n");
-	        non_mbed_device->start();
-
-		// next we connect our orchestrator to mbed edge via PT...
-		if (orchestrator->connectToMbedEdgePT(argc,argv) == true) {
-		    // we are connected to mbed-edge via PT... so start the orchestrator event loop
-		    orchestrator->processEvents();
-		}
-		else {
-		    // unable to bind to mbed-edge via PT... so exit
-		    printf("Main: ERROR: Unable to bind to mbed-edge via PT. Exiting...\n");
-		}
+	// next we connect our orchestrator to mbed edge via PT...
+	if (orchestrator->connectToMbedEdgePT(argc,argv) == true) {
+	    // we are connected to mbed-edge via PT... so start the orchestrator event loop (trival sleeping...)
+	    orchestrator->processEvents();
 	}
+	else {
+	    // unable to bind to mbed-edge via PT... so exit
+	    printf("Main: ERROR: Unable to bind to mbed-edge via PT. Exiting...\n");
+	}
+    }
 
-	// we reached the end... 
-	printf("Main: processing has ended!. Exiting...\n");
+    // we reached the end... 
+    printf("Main: processing has ended!. Exiting...\n");
+    shutdown_handler(0);
 }
