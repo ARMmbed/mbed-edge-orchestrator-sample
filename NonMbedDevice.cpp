@@ -83,9 +83,9 @@ void NonMbedDevice::start() {
 // stop the device event loop
 void NonMbedDevice::stop() {
     // DEBUG
-    printf("NonMbedDevice: Stopping device vent loop...\n");
+    printf("NonMbedDevice: Stopping device event loop...\n");
     this->m_is_running = false;
-    pthread_join(this->m_ticker_thread,NULL);
+    // pthread_join(this->m_ticker_thread,NULL);
 }
 
 // set the switch state

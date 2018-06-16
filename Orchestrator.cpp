@@ -110,6 +110,12 @@ void Orchestrator::completeShutdown() {
 void Orchestrator::shutdown() {
     // DEBUG
     printf("Orchestrator: Shutting down...\n");
+
+    // stop our NonMbedDevice event loop
+    if (this->m_device != NULL) {
+        NonMbedDevice *d = (NonMbedDevice *)this->m_device;
+        d->stop();
+    }
     
     // deregister all shadows
     if (this->m_device_shadow != NULL) {
@@ -244,8 +250,10 @@ bool Orchestrator::connectToMbedEdgePT(int argc,char **argv) {
 
 // main event loop for the orchestrator
 void Orchestrator::processEvents() {
-    // TEMP
-    while(true) { sleep(1); };
+    // the orchestrator can do other things in an actual implementation.. here we can just sleep as our NonMbedDevice has an event loop and will drive eventing via "ticks" 
+    while(true) { 
+	sleep(60); 
+    };
 }
 
 // ORCHESTRATE! create our device shadow
@@ -262,7 +270,7 @@ void Orchestrator::processTick(int value) {
     // make sure that PT is connected and ready...
     if (this->m_pt_connected == true) {
         // DEBUG
-        printf("Orchestrator: TODO processing tick from simulated device: value=%d...\n",value);
+        printf("Orchestrator: Processing tick from simulated device: value=%d...\n",value);
 	this->m_device_shadow->updateCounterResourceValue(value);
     }
 }
