@@ -405,7 +405,6 @@ void DeviceShadow::unregisterFailureCB(const char* device_id, void *ctx) {
     }
 }
 
-
 // deregister our shadow
 void DeviceShadow::deregister() {
     printf("DeviceShadow: Unregistering device shadow from mbed Cloud via PT...\n");
