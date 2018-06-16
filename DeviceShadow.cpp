@@ -408,7 +408,7 @@ void DeviceShadow::unregisterFailureCB(const char* device_id, void *ctx) {
 
 // deregister our shadow
 void DeviceShadow::deregister() {
-    printf("DeviceShadow: Unregistering...");
+    printf("DeviceShadow: Unregistering device shadow from mbed Cloud via PT...\n");
     Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
     pt_status_t status = pt_unregister_device(orchestrator->getConnection(), this->m_pt_device, &DeviceShadow::unregisterSuccessCB, &DeviceShadow::unregisterFailureCB, this);
     if (PT_STATUS_SUCCESS != status) {
