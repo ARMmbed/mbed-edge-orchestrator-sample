@@ -119,6 +119,7 @@ class DeviceShadow {
 	DeviceShadow(const DeviceShadow &device);
         void initialize(void *orchestrator,char *device_id,char *suffix);
 	pt_device_t *createPTDevice();
+	pt_resource_opaque_t *getResourceInstance(const uint16_t object_id,const uint16_t instance_id,const uint16_t resource_id);
 	bool createShadowWithPT();
 	bool registerShadowWithPT();
 	void createCounterLWM2MResource();

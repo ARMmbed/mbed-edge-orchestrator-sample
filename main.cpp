@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     // Simulated non-mbed device: generates a "tick" value every "n" seconds and has a gettable/settable switch state
     NonMbedDevice *non_mbed_device = new NonMbedDevice();
     if (non_mbed_device != NULL) {
-	// create our orchestrator for interacting via PT with mbed-edge
+	// the orchestrator will coordinate/orchestrate events/actions between the NonMbedDevice and a "device shadow" that represents the device in mbed Cloud
        	orchestrator = new Orchestrator(non_mbed_device);
 
 	// register our "tick" handler to be the Orchestrator... which will manipulate the device shadow...

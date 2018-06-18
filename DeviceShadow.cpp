@@ -292,17 +292,21 @@ bool DeviceShadow::registerShadowWithPT() {
     pt_register_device(orchestrator->getConnection(), this->m_pt_device, &DeviceShadow::registrationSuccessCB, &DeviceShadow::registrationFailureCB, (void *)this);
 }
 
+// find a specific resource instance
+pt_resource_opaque_t *DeviceShadow::getResourceInstance(const uint16_t object_id,const uint16_t instance_id,const uint16_t resource_id) {
+    pt_device_t *device = this->m_pt_device;
+    pt_object_t *object = pt_device_find_object(device, object_id);
+    pt_object_instance_t *instance = pt_object_find_object_instance(object, instance_id);
+    return pt_object_instance_find_resource(instance, resource_id);
+}
+
 // process a write request
 bool DeviceShadow::processWrite(const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size) {
     // DEBUG
     printf("DeviceShadow: received a WRITE request for \"%s/%d/%d/%d\" value length=%d\n",device_id,object_id,instance_id,resource_id,value_size);
+    pt_resource_opaque_t *resource = this->getResourceInstance(object_id,instance_id,resource_id);
 
-    pt_device_t *device = this->m_pt_device;
-    pt_object_t *object = pt_device_find_object(device, object_id);
-    pt_object_instance_t *instance = pt_object_find_object_instance(object, instance_id);
-    const pt_resource_opaque_t *resource = pt_object_instance_find_resource(instance, resource_id);
-
-    if (!device || !object || !instance || !resource) {
+    if (!resource) {
         printf("DeviceShadow: No match for device \"%s/%d/%d/%d\" on write action.\n", device_id, object_id, instance_id, resource_id);
         return false;
     }
@@ -326,7 +330,7 @@ bool DeviceShadow::processWrite(const char *device_id, const uint16_t object_id,
 
 	// we also update our value within PT if we have a value...
 	if (value != NULL && value_size > 0) {
-            pt_write_value(orchestrator->getConnection(), device, device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, this);
+            pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, this);
 	}
     }
     return true;
@@ -336,13 +340,10 @@ bool DeviceShadow::processWrite(const char *device_id, const uint16_t object_id,
 void DeviceShadow::updateCounterResourceValue(int value) {
     // DEBUG
     printf("DeviceShadow:: updating LWM2M counter resource to: %d...\n",value);
-
-    pt_object_t *object = pt_device_find_object(this->m_pt_device, COUNTER_OBJECT_ID);
-    pt_object_instance_t *instance = pt_object_find_object_instance(object, 0);
-    pt_resource_opaque_t *resource = pt_object_instance_find_resource(instance, COUNTER_RESOURCE_ID);
+    pt_resource_opaque_t *resource = this->getResourceInstance(COUNTER_OBJECT_ID,0,COUNTER_RESOURCE_ID);
     Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
 
-    if (!object || !instance || !resource) {
+    if (!resource) {
         printf("DeviceShadow: Could not find the counter object/resource.\n");
         return;
     }
