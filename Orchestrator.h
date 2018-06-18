@@ -86,7 +86,7 @@ class Orchestrator {
 	static void ptIsReadyCB(struct connection *connection,void *ctx);
 
  	// Process device shadow write request
-	static void processWriteRequest(struct connection *c, const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, 
+	static void processWriteRequestCB(struct connection *c, const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, 
 				          const unsigned int operation, const uint8_t *value, const uint32_t value_size,void *ctx);
 
 	// Get the device shadow (we only have one actual device and one shadow in our example Orchestrator...)

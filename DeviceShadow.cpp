@@ -55,6 +55,7 @@ void DeviceShadow::initialize(void *orchestrator,char *device_id,char *suffix) {
     this->m_pt_device = NULL;
     this->m_device_id = device_id;
     this->m_suffix = suffix;
+    this->m_is_registered = false;
     
     // create the FQ endpoint ID
     this->m_endpoint_id = (char *)malloc(strlen(this->m_device_id) + strlen(this->m_suffix) + 1);
@@ -109,9 +110,9 @@ pt_device_t *DeviceShadow::createPTDevice() {
 // update the counter value
 void DeviceShadow::updateCounterValue(const pt_resource_opaque_t *resource, const uint8_t* value, const uint32_t value_size) {
     NonMbedDevice *device = (NonMbedDevice *)this->getDevice();
-    int counter_value = 0;
-    convert_value_to_host_order_integer((uint8_t *)value,&counter_value);
-    printf("DeviceShadow: Counter Value set to: %d\n",counter_value);
+    long counter_value = 0;
+    convert_value_to_host_order_long((uint8_t *)value,&counter_value);
+    printf("DeviceShadow: Counter Value set to: %ld\n",counter_value);
     device->setCounterValue(counter_value);
 }
 
@@ -139,7 +140,7 @@ void DeviceShadow::createCounterLWM2MResource() {
     }
 
     uint8_t *counter_data = (uint8_t *)malloc(sizeof(int));
-    convert_int_value_to_network_byte_order(device->getCounterValue(), (uint8_t *) counter_data);
+    convert_long_value_to_network_byte_order((long)device->getCounterValue(), (uint8_t *) counter_data);
 
     (void)pt_object_instance_add_resource_with_callback(instance, COUNTER_RESOURCE_ID,
                                           LWM2M_INTEGER,
@@ -157,13 +158,14 @@ void DeviceShadow::createCounterLWM2MResource() {
 // update the switch state 
 void DeviceShadow::updateSwitchState(const pt_resource_opaque_t *resource, const uint8_t* value, const uint32_t value_size) {
     NonMbedDevice *device = (NonMbedDevice *)this->getDevice();
-    int int_switch_state = 0;
-    convert_value_to_host_order_integer((uint8_t *)value,&int_switch_state);
+    long long_switch_state = 0;
+    convert_value_to_host_order_long((uint8_t *)value,&long_switch_state);
     bool switch_state = false;
-    if (int_switch_state != 0) {
+    if (long_switch_state != 0) {
 	switch_state = true;
     }
-    printf("DeviceShadow: Switch State set: %d\n",int_switch_state);
+
+    // set the switch state
     device->setSwitchState(switch_state);
 }
 
@@ -192,10 +194,10 @@ void DeviceShadow::createSwitchLWM2MResource() {
 
     uint8_t *sw_data = (uint8_t *)malloc(sizeof(int));
     if (device->getSwitchState() == true) {
-        convert_int_value_to_network_byte_order(1, (uint8_t *) sw_data);
+        convert_long_value_to_network_byte_order((long)1, (uint8_t *) sw_data);
     }
     else {
-        convert_int_value_to_network_byte_order(0, (uint8_t *) sw_data);
+        convert_long_value_to_network_byte_order((long)0, (uint8_t *) sw_data);
     }
 
     (void)pt_object_instance_add_resource_with_callback(instance, SWITCH_RESOURCE_ID,
@@ -261,6 +263,7 @@ bool DeviceShadow::createShadowWithPT() {
 // registration success
 void DeviceShadow::registrationSuccess(const char *device_id) {
     printf("DeviceShadow: Shadow device: %s successfully registered\n",device_id);
+    this->m_is_registered = true;
 }
 
 // STATIC registration success CB
@@ -274,6 +277,7 @@ void DeviceShadow::registrationSuccessCB(const char* device_id, void *ctx) {
 // registration failure
 void DeviceShadow::registrationFailure(const char *device_id) {
     printf("DeviceShadow: Shadow device: %s registration FAILED\n",device_id);
+    this->m_is_registered = false;
 }
 
 // STATIC registration failure CB
@@ -301,37 +305,50 @@ pt_resource_opaque_t *DeviceShadow::getResourceInstance(const uint16_t object_id
 }
 
 // process a write request
-bool DeviceShadow::processWrite(const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size) {
+bool DeviceShadow::processWriteRequest(const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size) {
     // DEBUG
-    printf("DeviceShadow: received a WRITE request for \"%s/%d/%d/%d\" value length=%d\n",device_id,object_id,instance_id,resource_id,value_size);
-    pt_resource_opaque_t *resource = this->getResourceInstance(object_id,instance_id,resource_id);
+    printf("DeviceShadow: processWriteRequest() URI: %s/%d/%d/%d value length: %d bytes\n",device_id,object_id,instance_id,resource_id,value_size);
 
-    if (!resource) {
-        printf("DeviceShadow: No match for device \"%s/%d/%d/%d\" on write action.\n", device_id, object_id, instance_id, resource_id);
+    // get the approriate resource requested
+    pt_resource_opaque_t *resource = this->getResourceInstance(object_id,instance_id,resource_id);
+    if (resource == NULL) {
+        printf("DeviceShadow: No match for device URI: %s/%d/%d/%d on write action.\n", device_id, object_id, instance_id, resource_id);
         return false;
     }
 
     /* Check if resource supports operation */
     if (!(resource->operations & operation)) {
-        printf("DeviceShadow: Operation %d tried on resource \"%s/%d/%d/%d\" which does not support it\n", operation, device_id, object_id, instance_id, resource_id);
+        printf("DeviceShadow: Operation %d tried on resource URI: %s/%d/%d/%d which does not support it\n", operation, device_id, object_id, instance_id, resource_id);
         return false;
     }
 
     // for write and execute we typically have a callback... we may also update a value
     if (operation & OPERATION_WRITE || operation & OPERATION_EXECUTE) {
-        // DEBUG
-        printf("DeviceShadow: Writing/Executing new value to \"%s/%d/%d/%d\"...\n", device_id, object_id, instance_id, resource_id);
-	
-	// the callback will update the simulated device...
+	// update the value in our resource (all of our resources are integers...)
+	long new_value = 0;
+	convert_value_to_host_order_long((const uint8_t *)value,&new_value);
+	convert_long_value_to_network_byte_order(new_value,resource->value);
+
+	// get the orchestrator
 	Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
-	if (resource->callback != NULL) { 
-            resource->callback(resource, value, value_size, this);
+
+        // DEBUG
+	if (operation & OPERATION_WRITE) {
+            printf("DeviceShadow: Writing new value URI: %s/%d/%d/%d value: %ld...\n", device_id, object_id, instance_id, resource_id,new_value);
+	}
+	if (operation & OPERATION_EXECUTE) {
+	    printf("DeviceShadow: Executing new value URI: %s/%d/%d/%d value: %ld...\n", device_id, object_id, instance_id, resource_id,new_value);
 	}
 
-	// we also update our value within PT if we have a value...
-	if (value != NULL && value_size > 0) {
+        // execute a callback if we have one...
+        if (resource->callback != NULL) {
+            resource->callback(resource, value, value_size, this);
+        }
+
+        // update our value within PT if we have a value...
+        if (value != NULL && value_size > 0) {
             pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, this);
-	}
+        }
     }
     return true;
 }
@@ -349,14 +366,14 @@ void DeviceShadow::updateCounterResourceValue(int value) {
     }
 
     // get the current resource value
-    int current = -1;
-    convert_value_to_host_order_integer(resource->value,&current);
+    long current = -1;
+    convert_value_to_host_order_long(resource->value,&current);
 
     /* If value changed update it */
-    if (current != value) {
-        current = value; // current value is now the counter value incremented...
+    if (current != (long)value) {
+        current = (long)value; // current value is now the counter value incremented...
         printf("DeviceShadow: Updating counter value in mbed Cloud: %d\n",value);
-        convert_int_value_to_network_byte_order(value,resource->value);
+        convert_long_value_to_network_byte_order(current,resource->value);
 	if (resource->callback != NULL) {
             resource->callback(resource,resource->value,resource->value_size,this);
 	}
@@ -407,9 +424,11 @@ void DeviceShadow::unregisterFailureCB(const char* device_id, void *ctx) {
 // deregister our shadow
 void DeviceShadow::deregister() {
     printf("DeviceShadow: Unregistering device shadow from mbed Cloud via PT...\n");
-    Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
-    pt_status_t status = pt_unregister_device(orchestrator->getConnection(), this->m_pt_device, &DeviceShadow::unregisterSuccessCB, &DeviceShadow::unregisterFailureCB, this);
-    if (PT_STATUS_SUCCESS != status) {
-        pt_device_free(this->m_pt_device);
+    if (this->m_is_registered == true) {
+        Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
+        pt_status_t status = pt_unregister_device(orchestrator->getConnection(), this->m_pt_device, &DeviceShadow::unregisterSuccessCB, &DeviceShadow::unregisterFailureCB, this);
+        if (PT_STATUS_SUCCESS != status) {
+            pt_device_free(this->m_pt_device);
+	}
     } 
 }

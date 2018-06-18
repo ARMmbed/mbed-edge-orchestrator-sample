@@ -71,7 +71,7 @@ class DeviceShadow {
 	bool createAndRegister();
 
 	// process a write request to the shadow device...
-	bool processWrite(const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size);
+	bool processWriteRequest(const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size);
 
         // write success
         void writeSuccess(const char *device_id);
@@ -128,6 +128,7 @@ class DeviceShadow {
 
     private:
 	void        *m_orchestrator;
+        bool	     m_is_registered;
         pt_device_t *m_pt_device;
 	char	    *m_device_id;
 	char	    *m_suffix;

@@ -2,11 +2,11 @@ Simplified PT Client for mbed-edge
 
 To compile (linux supported only):
 
-	- Clone and compile https://github.com/ARMmbed/mbed-edge-confidential-w (for simplicity, use developer-flow enrollment)
+	- Clone and compile https://github.com/ARMmbed/mbed-edge (for simplicity, use developer-flow enrollment)
 
 	- Clone this repo
 
-	- Edit "build.sh" and adjust the EDGE_REPO variable to point to your compiled instance of "mbed-edge-confidential-w"
+	- Edit "build.sh" and adjust the EDGE_REPO variable to point to your compiled instance of "mbed-edge"
 
 	- Execute "./build.sh"
 

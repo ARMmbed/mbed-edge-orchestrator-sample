@@ -91,6 +91,9 @@ void NonMbedDevice::stop() {
 // set the switch state
 void NonMbedDevice::setSwitchState(bool switch_state) {
     this->m_switch_state = switch_state;
+    
+    // DEBUG 
+    printf("NonMbedDevice: Switch State set: %s\n", this->m_switch_state ? "on" : "off");
 }
 
 // get the switch state
@@ -120,4 +123,7 @@ void NonMbedDevice::tick() {
 // (re)set our counter value
 void NonMbedDevice::setCounterValue(int counter_value) {
     this->m_counter = counter_value;
+
+    // DEBUG 
+    printf("NonMbedDevice: Counter value set to: %d\n", this->m_counter);
 }

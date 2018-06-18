@@ -112,10 +112,10 @@ void Orchestrator::shutdown() {
     printf("Orchestrator: Shutting down...\n");
 
     // stop our NonMbedDevice event loop
-    if (this->m_device != NULL) {
-        NonMbedDevice *d = (NonMbedDevice *)this->m_device;
-        d->stop();
-    }
+    //if (this->m_device != NULL) {
+    //    NonMbedDevice *d = (NonMbedDevice *)this->m_device;
+    //    d->stop();
+    //}
     
     // deregister all shadows
     if (this->m_device_shadow != NULL) {
@@ -173,11 +173,11 @@ void Orchestrator::ptIsReady(struct connection *connection) {
 }
 
 // STATIC: process a write request
-void Orchestrator::processWriteRequest(struct connection *c, const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size, void* ctx) {
+void Orchestrator::processWriteRequestCB(struct connection *c, const char *device_id, const uint16_t object_id, const uint16_t instance_id, const uint16_t resource_id, const unsigned int operation, const uint8_t *value, const uint32_t value_size, void* ctx) {
    Orchestrator *instance = (Orchestrator *)ctx;
    if (instance != NULL) {
 	// we simply have one shadow in our orchestrator.. so snag it and call its processWrite() method...
-        bool success = instance->getDeviceShadow()->processWrite(device_id,object_id,instance_id,resource_id,operation,value,value_size);
+        bool success = instance->getDeviceShadow()->processWriteRequest(device_id,object_id,instance_id,resource_id,operation,value,value_size);
         if (success == true) {
             // write succees
             printf("Orchestrator: write SUCCESS\n");
@@ -211,7 +211,7 @@ void Orchestrator::ptIsReadyCB(struct connection *connection,void *ctx) {
 void Orchestrator::runPT() {
     protocol_translator_callbacks_t pt_cbs;
     pt_cbs.connection_ready_cb = (pt_connection_ready_cb) &Orchestrator::ptIsReadyCB;
-    pt_cbs.received_write_cb = (pt_received_write_handler) &Orchestrator::processWriteRequest;
+    pt_cbs.received_write_cb = (pt_received_write_handler) &Orchestrator::processWriteRequestCB;
     pt_cbs.connection_shutdown_cb = (pt_connection_shutdown_cb) &Orchestrator::shutdownCB;
     pt_client_start(this->m_pt_ctx->hostname, this->m_pt_ctx->port, this->m_pt_ctx->name, &pt_cbs, (void *)this, &this->m_connection);
 }

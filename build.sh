@@ -5,7 +5,8 @@
 #
 # Repo: https://github.com/ARMmbed/mbed-edge-confidential-w
 #
-export EDGE_REPO=${HOME}/edge/mbed-edge-confidential-w
+# export EDGE_REPO=${HOME}/edge/mbed-edge-confidential-w
+export EDGE_REPO=${HOME}/edge/mbed-edge
 
 #
 # build the sample

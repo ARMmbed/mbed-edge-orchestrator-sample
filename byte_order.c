@@ -21,19 +21,17 @@
 #include <arpa/inet.h>
 #include <inttypes.h>
 #include <string.h>
+#include <endian.h>
 
-void convert_value_to_host_order_integer(uint8_t *value, int *int_value)
+void convert_value_to_host_order_long(const uint8_t *buffer, long *host_value)
 {
-    uint32_t temp_value;
-    memcpy(&temp_value, value, sizeof(int));
-    temp_value = ntohl(temp_value);
-    memcpy(int_value, &temp_value, sizeof(int));
+    long net_value = -1;
+    memcpy(&net_value, buffer, sizeof(long));
+    *host_value = be64toh(net_value);
 }
 
-void convert_int_value_to_network_byte_order(int value, uint8_t *buffer) 
+void convert_long_value_to_network_byte_order(long host_value, uint8_t *buffer) 
 {
-    uint32_t temp_value;
-    memcpy(&temp_value, &value, sizeof(int));
-    temp_value = htonl(temp_value);
-    memcpy(buffer, &temp_value, sizeof(int));
+    long net_value = htobe64(host_value);
+    memcpy(buffer, &net_value, sizeof(long));
 }
