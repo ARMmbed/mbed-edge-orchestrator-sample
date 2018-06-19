@@ -1,8 +1,8 @@
-#Mbed Edge Orchestrator Sample
+# Mbed Edge Orchestrator Sample
 
 Simplified PT Client for mbed-edge
 
-#To compile (linux supported only):
+## To compile (linux supported only):
 
 	- Clone and compile https://github.com/ARMmbed/mbed-edge (for simplicity, use developer-flow enrollment)
 
@@ -16,7 +16,7 @@ Simplified PT Client for mbed-edge
 
 	- Execute "./run.sh"
 
-#Notes:
+## Notes:
 
 You should be able to confirm that there is a single device in your mbed Cloud account (it should be called "NonMbedDevice-0")
 
