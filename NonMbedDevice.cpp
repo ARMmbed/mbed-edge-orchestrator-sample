@@ -66,6 +66,7 @@ void *NonMbedDevice::tickerProcessor(void *ctx) {
 // device run loop
 void NonMbedDevice::deviceRunLoop() {
      // loop
+     printf("NonMbedDevice: non mbed device loop starting...(thread id: %08x)...\n",(unsigned int)pthread_self());
      while(this->m_is_running == true) {
         this->tick();
         sleep(TICKER_SLEEP_TIME_SEC);
@@ -85,7 +86,6 @@ void NonMbedDevice::stop() {
     // DEBUG
     printf("NonMbedDevice: Stopping device event loop...\n");
     this->m_is_running = false;
-    // pthread_join(this->m_ticker_thread,NULL);
 }
 
 // set the switch state

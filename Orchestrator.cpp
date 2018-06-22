@@ -209,6 +209,7 @@ void Orchestrator::ptIsReadyCB(struct connection *connection,void *ctx) {
 
 // Run PT
 void Orchestrator::runPT() {
+    printf("Orchestrator: starting up the protocol translator (ThreadID: %08x)...\n",(unsigned int)pthread_self());
     protocol_translator_callbacks_t pt_cbs;
     pt_cbs.connection_ready_cb = (pt_connection_ready_cb) &Orchestrator::ptIsReadyCB;
     pt_cbs.received_write_cb = (pt_received_write_handler) &Orchestrator::processWriteRequestCB;
@@ -227,6 +228,7 @@ void *Orchestrator::runPT(void *ctx) {
 
 // Start PT
 bool Orchestrator::startPT() {
+    // create a thread to create PT, register it, create and register the device shadow... 
     pthread_create(&this->m_pt_thread,NULL,&Orchestrator::runPT,(void *)this);
 }
 
@@ -252,7 +254,12 @@ bool Orchestrator::connectToMbedEdgePT(int argc,char **argv) {
 void Orchestrator::processEvents() {
     // the orchestrator can do other things in an actual implementation.. here we can just sleep as our NonMbedDevice has an event loop and will drive eventing via "ticks" 
     while(true) { 
-	sleep(60); 
+	// process any events in the device shadow
+	this->m_device_shadow->processEvents();
+
+	// wait a bit
+	printf("Orchestrator: Device shadow done processing events... sleeping for a bit...\n");
+	sleep(5); 
     };
 }
 
@@ -270,8 +277,8 @@ void Orchestrator::processTick(int value) {
     // make sure that PT is connected and ready...
     if (this->m_pt_connected == true) {
         // DEBUG
-        printf("Orchestrator: Processing tick from simulated device: value=%d...\n",value);
-	this->m_device_shadow->updateCounterResourceValue(value);
+        printf("Orchestrator: notifying device shadow that the counter value has changed. new_value=%d...\n",value);
+	this->m_device_shadow->notifyCounterValueHasChanged(value);
     }
 }
 

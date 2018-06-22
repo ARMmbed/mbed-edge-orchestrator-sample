@@ -67,6 +67,12 @@ class DeviceShadow {
 	DeviceShadow(void *orchestrator,char *device_id,char *suffix);
         virtual ~DeviceShadow();
 
+	// notify that the counter value has changed
+	void notifyCounterValueHasChanged(int new_value);
+
+	// process events
+	void processEvents();
+
 	// create and register the shadow device
 	bool createAndRegister();
 
@@ -136,6 +142,8 @@ class DeviceShadow {
 
 	int	     m_counter_value;
 	bool	     m_switch_state;
+	int	     m_new_counter_value;
+	bool	     m_counter_value_changed;
 };
 
 #endif // __DEVICE_SHADOW_H__

@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     NonMbedDevice *non_mbed_device = new NonMbedDevice();
     if (non_mbed_device != NULL) {
         // start the simulated non-mbed device's main loop
-        printf("Main: starting the simulated non-mbed device...\n");
+        printf("Main: starting the simulated non-mbed device...(thread id: %08x)\n",(unsigned int)pthread_self());
         non_mbed_device->start();
 
         // the orchestrator will coordinate/orchestrate events/actions between the NonMbedDevice and a "device shadow" that represents the device in mbed Cloud
@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 	// next we connect our orchestrator to mbed edge via PT...
 	if (orchestrator->connectToMbedEdgePT(argc,argv) == true) {
 	    // we are connected to mbed-edge via PT... so start the orchestrator event loop (trival sleeping...)
+	    printf("Main: now processing events...\n");
 	    orchestrator->processEvents();
 	}
 	else {

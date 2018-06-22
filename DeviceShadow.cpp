@@ -56,6 +56,8 @@ void DeviceShadow::initialize(void *orchestrator,char *device_id,char *suffix) {
     this->m_device_id = device_id;
     this->m_suffix = suffix;
     this->m_is_registered = false;
+    this->m_new_counter_value = -1;
+    this->m_counter_value_changed = false;
     
     // create the FQ endpoint ID
     this->m_endpoint_id = (char *)malloc(strlen(this->m_device_id) + strlen(this->m_suffix) + 1);
@@ -264,6 +266,10 @@ bool DeviceShadow::createShadowWithPT() {
 void DeviceShadow::registrationSuccess(const char *device_id) {
     printf("DeviceShadow: Shadow device: %s successfully registered\n",device_id);
     this->m_is_registered = true;
+
+    // we are in the runPT thread within Orchestrator... we need to rejoin with the main thread...
+    //printf("DeviceShadow: Rejoining with the main thread...\n");
+    //pthread_exit(NULL);
 }
 
 // STATIC registration success CB
@@ -342,12 +348,22 @@ bool DeviceShadow::processWriteRequest(const char *device_id, const uint16_t obj
 
         // execute a callback if we have one...
         if (resource->callback != NULL) {
+	    printf("DeviceShadow: Calling registered callback to write new resource value into mbed Cloud...\n");
             resource->callback(resource, value, value_size, this);
         }
 
         // update our value within PT if we have a value...
         if (value != NULL && value_size > 0) {
-            pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, this);
+	    printf("DeviceShadow: Calling pt_write_value() to write new resource value into mbed Cloud...(thread id: %08x)\n",(unsigned int)pthread_self());
+            pt_status_t status = pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB, this);
+	    if (status == PT_STATUS_SUCCESS) {
+		// success
+		printf("DeviceShadow: pt_write_value() succeeded!\n");
+	    }
+	    else {
+		// failure
+		printf("DeviceShadow: pt_write_value() failed with error: %d\n",status);
+	    }
         }
     }
     return true;
@@ -356,12 +372,12 @@ bool DeviceShadow::processWriteRequest(const char *device_id, const uint16_t obj
 // update the counter resource value via PT
 void DeviceShadow::updateCounterResourceValue(int value) {
     // DEBUG
-    printf("DeviceShadow:: updating LWM2M counter resource to: %d...\n",value);
+    printf("DeviceShadow:: updating device shadow counter resource to: %d (thread id: %08x)...\n",value,(unsigned int)pthread_self());
     pt_resource_opaque_t *resource = this->getResourceInstance(COUNTER_OBJECT_ID,0,COUNTER_RESOURCE_ID);
     Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
 
     if (!resource) {
-        printf("DeviceShadow: Could not find the counter object/resource.\n");
+        printf("DeviceShadow: Could not find the device shadow counter object/resource.\n");
         return;
     }
 
@@ -377,7 +393,16 @@ void DeviceShadow::updateCounterResourceValue(int value) {
 	if (resource->callback != NULL) {
             resource->callback(resource,resource->value,resource->value_size,this);
 	}
-        pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB,this);
+	printf("DeviceShadow: Calling pt_write_value() to update counter resource in mbed Cloud: %d\n",value);
+        pt_status_t status = pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB,this);
+	if (status == PT_STATUS_SUCCESS) {
+           // success
+           printf("DeviceShadow: pt_write_value() succeeded!\n");
+        }
+        else {
+           // failure
+           printf("DeviceShadow: pt_write_value() failed with error: %d\n",status);
+        }
     }
 }
 
@@ -431,4 +456,25 @@ void DeviceShadow::deregister() {
             pt_device_free(this->m_pt_device);
 	}
     } 
+}
+
+// notify that the counter value has changed
+void DeviceShadow::notifyCounterValueHasChanged(int new_value) {
+    this->m_new_counter_value = new_value;
+    this->m_counter_value_changed = true;
+}
+
+// process events
+void DeviceShadow::processEvents() {
+     printf("DeviceShadow: Checking to see if we have any events to process (thread id: %08x)...\n",(unsigned int)pthread_self());
+     if (this->m_counter_value_changed == true) {
+	printf("DeviceShadow: Counter has changed in the non-mbed device... updating the mapped resource in PT...\n");
+	this->updateCounterResourceValue(this->m_new_counter_value);
+        this->m_counter_value_changed = false;
+	printf("DeviceShadow: Contuer value updated in resource via PT.\n");
+     }
+     else {
+	// nothing to do
+	printf("DeviceShadow: No events to process (OK)...\n");
+     }
 }
