@@ -471,7 +471,7 @@ void DeviceShadow::processEvents() {
 	printf("DeviceShadow: Counter has changed in the non-mbed device... updating the mapped resource in PT...\n");
 	this->updateCounterResourceValue(this->m_new_counter_value);
         this->m_counter_value_changed = false;
-	printf("DeviceShadow: Contuer value updated in resource via PT.\n");
+	printf("DeviceShadow: Counter value updated in resource via PT.\n");
      }
      else {
 	// nothing to do
