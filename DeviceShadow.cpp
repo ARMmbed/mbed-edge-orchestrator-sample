@@ -266,10 +266,6 @@ bool DeviceShadow::createShadowWithPT() {
 void DeviceShadow::registrationSuccess(const char *device_id) {
     printf("DeviceShadow: Shadow device: %s successfully registered\n",device_id);
     this->m_is_registered = true;
-
-    // we are in the runPT thread within Orchestrator... we need to rejoin with the main thread...
-    //printf("DeviceShadow: Rejoining with the main thread...\n");
-    //pthread_exit(NULL);
 }
 
 // STATIC registration success CB
@@ -376,7 +372,8 @@ void DeviceShadow::updateCounterResourceValue(int value) {
     pt_resource_opaque_t *resource = this->getResourceInstance(COUNTER_OBJECT_ID,0,COUNTER_RESOURCE_ID);
     Orchestrator *orchestrator = (Orchestrator *)this->m_orchestrator;
 
-    if (!resource) {
+    // make sure we have a resource...
+    if (resource == NULL) {
         printf("DeviceShadow: Could not find the device shadow counter object/resource.\n");
         return;
     }
@@ -385,7 +382,7 @@ void DeviceShadow::updateCounterResourceValue(int value) {
     long current = -1;
     convert_value_to_host_order_long(resource->value,&current);
 
-    /* If value changed update it */
+    // If value changed update it
     if (current != (long)value) {
         current = (long)value; // current value is now the counter value incremented...
         printf("DeviceShadow: Updating counter value in mbed Cloud: %d\n",value);
@@ -393,7 +390,11 @@ void DeviceShadow::updateCounterResourceValue(int value) {
 	if (resource->callback != NULL) {
             resource->callback(resource,resource->value,resource->value_size,this);
 	}
+
+	// DEBUG
 	printf("DeviceShadow: Calling pt_write_value() to update counter resource in mbed Cloud: %d\n",value);
+
+	// update the counter value...
         pt_status_t status = pt_write_value(orchestrator->getConnection(), this->m_pt_device, this->m_pt_device->objects, &DeviceShadow::writeSuccessCB, &DeviceShadow::writeFailureCB,this);
 	if (status == PT_STATUS_SUCCESS) {
            // success
@@ -466,15 +467,23 @@ void DeviceShadow::notifyCounterValueHasChanged(int new_value) {
 
 // process events
 void DeviceShadow::processEvents() {
+     // DEBUG
      printf("DeviceShadow: Checking to see if we have any events to process (thread id: %08x)...\n",(unsigned int)pthread_self());
+
+     // has the ticker processor thread indicated that we have a new counter value?
      if (this->m_counter_value_changed == true) {
+	// counter value has changed... so lets update mbed Cloud...
 	printf("DeviceShadow: Counter has changed in the non-mbed device... updating the mapped resource in PT...\n");
 	this->updateCounterResourceValue(this->m_new_counter_value);
+
+        // we are done with the update... so reset back to "unchanged" as the default state...
         this->m_counter_value_changed = false;
+
+        // DEBUG
 	printf("DeviceShadow: Counter value updated in resource via PT.\n");
      }
      else {
-	// nothing to do
+	// nothing to do - i.e. counter has not been updated...
 	printf("DeviceShadow: No events to process (OK)...\n");
      }
 }

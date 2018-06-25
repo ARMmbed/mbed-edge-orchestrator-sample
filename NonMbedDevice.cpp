@@ -78,6 +78,8 @@ void NonMbedDevice::deviceRunLoop() {
 void NonMbedDevice::start() {
      // DEBUG
      printf("NonMbedDevice::starting the device event loop...\n");
+
+     // create a simple thread to start a monotonic counter...
      pthread_create(&this->m_ticker_thread,NULL,&NonMbedDevice::tickerProcessor,(void *)this);
 }
 

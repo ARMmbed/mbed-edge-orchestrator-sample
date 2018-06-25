@@ -112,10 +112,10 @@ void Orchestrator::shutdown() {
     printf("Orchestrator: Shutting down...\n");
 
     // stop our NonMbedDevice event loop
-    //if (this->m_device != NULL) {
-    //    NonMbedDevice *d = (NonMbedDevice *)this->m_device;
-    //    d->stop();
-    //}
+    if (this->m_device != NULL) {
+        NonMbedDevice *d = (NonMbedDevice *)this->m_device;
+        d->stop();
+    }
     
     // deregister all shadows
     if (this->m_device_shadow != NULL) {
@@ -209,15 +209,20 @@ void Orchestrator::ptIsReadyCB(struct connection *connection,void *ctx) {
 
 // Run PT
 void Orchestrator::runPT() {
+    // DEBUG
     printf("Orchestrator: starting up the protocol translator (ThreadID: %08x)...\n",(unsigned int)pthread_self());
+
+    // create and run the protocol translator (PT) - configure the callbacks for it...
     protocol_translator_callbacks_t pt_cbs;
     pt_cbs.connection_ready_cb = (pt_connection_ready_cb) &Orchestrator::ptIsReadyCB;
     pt_cbs.received_write_cb = (pt_received_write_handler) &Orchestrator::processWriteRequestCB;
     pt_cbs.connection_shutdown_cb = (pt_connection_shutdown_cb) &Orchestrator::shutdownCB;
+
+    // start the PT...
     pt_client_start(this->m_pt_ctx->hostname, this->m_pt_ctx->port, this->m_pt_ctx->name, &pt_cbs, (void *)this, &this->m_connection);
 }
 
-// Run PT
+// STATIC: Run PT
 void *Orchestrator::runPT(void *ctx) {
     Orchestrator *instance = (Orchestrator *)ctx;
    if (instance != NULL) {
@@ -257,13 +262,15 @@ void Orchestrator::processEvents() {
 	// process any events in the device shadow
 	this->m_device_shadow->processEvents();
 
-	// wait a bit
+	// DEBUG
 	printf("Orchestrator: Device shadow done processing events... sleeping for a bit...\n");
+
+	// wait a bit
 	sleep(5); 
     };
 }
 
-// ORCHESTRATE! create our device shadow
+// create our device shadow
 void Orchestrator::createDeviceShadow() {
     // make sure that PT is connected and ready...
     if (this->m_pt_connected == true) {
@@ -272,12 +279,14 @@ void Orchestrator::createDeviceShadow() {
     }
 }
 
-// ORCHESTRATE! device shadow: tick processor
+// device shadow: tick processor (ORCHESTRATE!)
 void Orchestrator::processTick(int value) {
     // make sure that PT is connected and ready...
     if (this->m_pt_connected == true) {
         // DEBUG
         printf("Orchestrator: notifying device shadow that the counter value has changed. new_value=%d...\n",value);
+
+	// tell the device shadow that the counter value has changed... its running in a separate thread and will hand this in its loop...
 	this->m_device_shadow->notifyCounterValueHasChanged(value);
     }
 }
