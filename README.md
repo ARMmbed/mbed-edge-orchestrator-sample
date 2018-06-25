@@ -4,7 +4,7 @@ Simplified PT Client for mbed-edge
 
 This PT sample creates the following simulated non-mbed device and "shadows" the device within mbed Cloud via mbed-edge:
 
-![](`r https://github.com/ARMmbed/mbed-edge-orchestrator-sample/blob/master/description.png`)
+![image](./description.png)
 
 ## To compile (linux supported only):
 
