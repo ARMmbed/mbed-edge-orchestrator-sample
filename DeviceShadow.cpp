@@ -141,7 +141,7 @@ void DeviceShadow::createCounterLWM2MResource() {
         printf("DeviceShadow: Could not create an object instance with id: 0 to the object (%d).\n", COUNTER_OBJECT_ID);
     }
 
-    uint8_t *counter_data = (uint8_t *)malloc(sizeof(int));
+    uint8_t *counter_data = (uint8_t *)malloc(sizeof(long));
     convert_long_value_to_network_byte_order((long)device->getCounterValue(), (uint8_t *) counter_data);
 
     (void)pt_object_instance_add_resource_with_callback(instance, COUNTER_RESOURCE_ID,
@@ -194,7 +194,7 @@ void DeviceShadow::createSwitchLWM2MResource() {
         printf("DeviceShadow: Could not create an object instance with id 0 to the object (%d).\n", SWITCH_OBJECT_ID);
     }
 
-    uint8_t *sw_data = (uint8_t *)malloc(sizeof(int));
+    uint8_t *sw_data = (uint8_t *)malloc(sizeof(long));
     if (device->getSwitchState() == true) {
         convert_long_value_to_network_byte_order((long)1, (uint8_t *) sw_data);
     }
