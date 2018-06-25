@@ -2,18 +2,18 @@
 
 Simplified PT Client for mbed-edge
 
+This PT sample creates the following simulated non-mbed device and "shadows" the device within mbed Cloud via mbed-edge:
+
+
+
 ## To compile (linux supported only):
 
-	- Clone and compile https://github.com/ARMmbed/mbed-edge (for simplicity, use developer-flow enrollment)
-
+	- Clone and compile https://github.com/ARMmbed/mbed-edge 
+		- for simplicity, use developer-flow enrollment
 	- Clone this repo
-
 	- Edit "build.sh" and adjust the EDGE_REPO variable to point to your compiled instance of "mbed-edge"
-
 	- Execute "./build.sh"
-
 	- In a separate window, launch the edge-core runtime
-
 	- Execute "./run.sh"
 
 ## Notes:
