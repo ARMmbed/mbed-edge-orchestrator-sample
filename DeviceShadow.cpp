@@ -148,7 +148,7 @@ void DeviceShadow::createCounterLWM2MResource() {
                                           LWM2M_INTEGER,
                                           OPERATION_READ | OPERATION_WRITE,
                                           counter_data,
-                                          sizeof(int),
+                                          sizeof(long),
                                           &status,
                                           &DeviceShadow::updateCounterValueCB);
 
@@ -206,7 +206,7 @@ void DeviceShadow::createSwitchLWM2MResource() {
                                           LWM2M_INTEGER,
                                           OPERATION_READ | OPERATION_WRITE,
                                           sw_data,
-                                          sizeof(int),
+                                          sizeof(long),
                                           &status,
                                           &DeviceShadow::updateSwitchStateCB);
 
