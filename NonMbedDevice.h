@@ -1,9 +1,9 @@
 /**
  * @file    NonMbedDevice.h
- * @brief   Non-Mbed Simulated Device Sample 
+ * @brief   Non-Mbed Simulated Device Sample
  * @author  Doug Anson
  * @version 1.0
- * @see     
+ * @see
  *
  * Copyright (c) 2018
  *
@@ -23,52 +23,53 @@
 #ifndef __NON_MBED_DEVICE_H__
 #define __NON_MBED_DEVICE_H__
 
-#include <stdio.h>
 #include <pthread.h>
+#include <stdio.h>
 
 // Tunables
-#define TICKER_SLEEP_TIME_SEC			25		// tick once every 25 seconds...
+#define TICKER_SLEEP_TIME_SEC 25 // tick once every 25 seconds...
 
 // tick event callback
-typedef void (ticker_event_fn)(int value,void *ctx);
+typedef void(ticker_event_fn)(int value, void *ctx);
 
 class NonMbedDevice {
-	public:
-		NonMbedDevice();
- 		virtual ~NonMbedDevice();
-		
-		// set the "tick" event handler 
-		void setEventCallbackHandler(ticker_event_fn *fn,void *ctx);
+public:
+  NonMbedDevice();
+  virtual ~NonMbedDevice();
 
-		// static "tick" processor 
-		static void *tickerProcessor(void *ctx);
-	
-		// main loop for the simulated device (pthread)
-		void start();
-		void stop();
-		void deviceRunLoop();
+  // set the "tick" event handler
+  void setEventCallbackHandler(ticker_event_fn *fn, void *ctx);
 
-		// the simulated device "ticks" a counter value every "n" seconds... so we can get/set its value...
-		void setCounterValue(int counter_value);
-		int getCounterValue();
+  // static "tick" processor
+  static void *tickerProcessor(void *ctx);
 
-		// the simulated device has an I/O switch... so we can get/set its state...
-	        void setSwitchState(bool switch_state);
-		bool getSwitchState();
+  // main loop for the simulated device (pthread)
+  void start();
+  void stop();
+  void deviceRunLoop();
 
-	private:
-		NonMbedDevice(const NonMbedDevice &device);
-		void initialize();
-		void tick();
+  // the simulated device "ticks" a counter value every "n" seconds... so we can
+  // get/set its value...
+  void setCounterValue(int counter_value);
+  int getCounterValue();
 
-	private:
-  		int m_counter;
-		bool m_switch_state;
+  // the simulated device has an I/O switch... so we can get/set its state...
+  void setSwitchState(bool switch_state);
+  bool getSwitchState();
 
-		ticker_event_fn *m_event_fn;
- 		void *m_ctx;
-  		bool m_is_running;
-  	        pthread_t m_ticker_thread;
+private:
+  NonMbedDevice(const NonMbedDevice &device);
+  void initialize();
+  void tick();
+
+private:
+  int m_counter;
+  bool m_switch_state;
+
+  ticker_event_fn *m_event_fn;
+  void *m_ctx;
+  bool m_is_running;
+  pthread_t m_ticker_thread;
 };
 
 #endif // __NON_MBED_DEVICE_H__

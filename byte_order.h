@@ -3,7 +3,7 @@
  * @brief   mbed Edge byte order utils
  * @author  Doug Anson
  * @version 1.0
- * @see     
+ * @see
  *
  * Copyright (c) 2018
  *
@@ -23,7 +23,9 @@
 #ifndef __BYTE_ORDER_UTILS_H__
 #define __BYTE_ORDER_UTILS_H__
 
-extern "C" void convert_value_to_host_order_long(const uint8_t *buffer, long *host_value);
-extern "C" void convert_long_value_to_network_byte_order(long host_value, uint8_t *buffer);
+extern "C" void convert_value_to_host_order_long(const uint8_t *buffer,
+                                                 long *host_value);
+extern "C" void convert_long_value_to_network_byte_order(long host_value,
+                                                         uint8_t *buffer);
 
 #endif // __BYTE_ORDER_UTILS_H__

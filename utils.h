@@ -3,7 +3,7 @@
  * @brief   mbed Edge Misc utililties
  * @author  Doug Anson
  * @version 1.0
- * @see     
+ * @see
  *
  * Copyright (c) 2018
  *
