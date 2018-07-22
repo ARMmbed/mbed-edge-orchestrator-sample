@@ -182,7 +182,7 @@ void Orchestrator::processWriteRequestCB(
   Orchestrator *instance = (Orchestrator *)ctx;
   if (instance != NULL) {
     // we simply have one shadow in our orchestrator.. so snag it and call its
-    // processWrite() method...
+    // processWriteRequest() method...
     bool success = instance->getDeviceShadow()->processWriteRequest(
         device_id, object_id, instance_id, resource_id, operation, value,
         value_size);

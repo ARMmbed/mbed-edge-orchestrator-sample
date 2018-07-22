@@ -117,6 +117,7 @@ void DeviceShadow::updateCounterValue(const pt_resource_opaque_t *resource,
                                       const uint8_t *value,
                                       const uint32_t value_size) {
   NonMbedDevice *device = (NonMbedDevice *)this->getDevice();
+
   long counter_value = 0;
   convert_value_to_host_order_long((uint8_t *)value, &counter_value);
   printf("DeviceShadow: Counter Value set to: %ld\n", counter_value);
@@ -155,8 +156,7 @@ void DeviceShadow::createCounterLWM2MResource() {
   }
 
   uint8_t *counter_data = (uint8_t *)malloc(sizeof(long));
-  convert_long_value_to_network_byte_order((long)device->getCounterValue(),
-                                           (uint8_t *)counter_data);
+  convert_long_value_to_network_byte_order((long)device->getCounterValue(), (uint8_t *)counter_data);
 
   (void)pt_object_instance_add_resource_with_callback(
       instance, COUNTER_RESOURCE_ID, LWM2M_INTEGER,
@@ -175,8 +175,10 @@ void DeviceShadow::updateSwitchState(const pt_resource_opaque_t *resource,
                                      const uint8_t *value,
                                      const uint32_t value_size) {
   NonMbedDevice *device = (NonMbedDevice *)this->getDevice();
+
   long long_switch_state = 0;
   convert_value_to_host_order_long((uint8_t *)value, &long_switch_state);
+
   bool switch_state = false;
   if (long_switch_state != 0) {
     switch_state = true;
@@ -218,6 +220,7 @@ void DeviceShadow::createSwitchLWM2MResource() {
   }
 
   uint8_t *sw_data = (uint8_t *)malloc(sizeof(long));
+
   if (device->getSwitchState() == true) {
     convert_long_value_to_network_byte_order((long)1, (uint8_t *)sw_data);
   } else {
@@ -442,8 +445,7 @@ void DeviceShadow::updateCounterResourceValue(int value) {
 
   // If value changed update it
   if (current != (long)value) {
-    current =
-        (long)value; // current value is now the counter value incremented...
+    current = (long)value; // current value is now the counter value incremented...
     printf("DeviceShadow: Updating counter value in mbed Cloud: %d\n", value);
     convert_long_value_to_network_byte_order(current, resource->value);
     if (resource->callback != NULL) {
